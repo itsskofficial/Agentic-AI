@@ -1,0 +1,231 @@
+{
+  "name": "Reporting #3",
+  "nodes": [
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "12zqeAczdRpKQQ9g03zfy55gCrtWMlqdjSOALeMhMKnA",
+          "mode": "list",
+          "cachedResultName": "n8n Leads v2",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12zqeAczdRpKQQ9g03zfy55gCrtWMlqdjSOALeMhMKnA/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/12zqeAczdRpKQQ9g03zfy55gCrtWMlqdjSOALeMhMKnA/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "Date",
+              "lookupValue": "={{ $today }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        220,
+        0
+      ],
+      "id": "5d045674-927f-44f4-bde8-ff6fa6d1a481",
+      "name": "Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "KunYe3TegBFjpw6i",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        680,
+        0
+      ],
+      "id": "af7815dc-e112-4257-bb06-2c4c09c0cd45",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a7fa324b-ddbb-449a-9863-523165321281",
+              "leftValue": "={{ $json.Called }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "bf1b6c90-69f3-499b-b848-2703238ff49e",
+              "leftValue": "={{ $json.Rejected }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        440,
+        0
+      ],
+      "id": "c5109e96-b883-4924-beda-00c4531ca340",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "sendTo": "jccatliff@gmail.com",
+        "subject": "List of new leads",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1120,
+        0
+      ],
+      "id": "36eb0ca3-affe-447d-9ad4-335ff09b1e43",
+      "name": "Gmail",
+      "webhookId": "42f09698-6c1a-4eed-b508-41b6fe6c5b3c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "12w0u5t581RmQd4a",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const people = items[0].json.data;\n\nconst textOutput = people.map(person => \n    `Name: ${person[\"First Name\"]} ${person[\"Last Name\"]}\\n` +\n    `Email: ${person[\"Email\"]}\\n` +\n    `Budget: ${person[\"Budget \"]}\\n` +\n    `Message: ${person[\"Message\"]}`\n).join(\"\\n\\n\"); // Joins all person entries with a blank line in between\n\nreturn [{ json: { text: textOutput } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        900,
+        0
+      ],
+      "id": "5ebbb3c0-1f57-4e33-b589-e7bca28b7575",
+      "name": "Code"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 19
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        20,
+        0
+      ],
+      "id": "0ab70fef-1530-45d1-9198-d31005f03201",
+      "name": "Schedule Trigger"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Code",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code": {
+      "main": [
+        [
+          {
+            "node": "Gmail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Google Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "26261400-6c67-4c8d-8aec-00194d399cf7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1634d6780881083f875db19c71d51869c0e94392a6eb439c8428bfd22a4db7c1"
+  },
+  "id": "o2KF9aGhMLX887Of",
+  "tags": []
+}
